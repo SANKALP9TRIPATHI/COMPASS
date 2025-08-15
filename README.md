@@ -1,86 +1,105 @@
-# COMPASS
-The COMPASS (Cross-modal Object Mapping and Precise Automated Scene Segmentation) model is a dense scene localization framework that operates on natural language queries, enabling fine-grained mapping of target objects and regions within complex, multi-object environments. It bridges the gap between visual perception and linguistic understanding, integrating joint vision–language embeddings to pinpoint queried objects with pixel-level or bounding-box precision. 
-Unlike traditional object detection pipelines, which are constrained to a predefined set of object categories (e.g., COCO’s 80 classes), COMPASS is open-vocabulary by design. This allows it to respond to arbitrary text prompts, including unseen object names, descriptive phrases, and contextual relations making it adaptable to diverse and dynamic domains 
+# COMPASS  
+**Cross-modal Object Mapping and Precise Automated Scene Segmentation**  
+[![GitHub](https://img.shields.io/badge/Code-View_on_GitHub-black?logo=github)](https://github.com/SANKALP9TRIPATHI/COMPASS/blob/main/compass%20.ipynb)
 
-🌟 Key Features
-Open-Vocabulary Detection: Handles arbitrary text queries without being limited to predefined object categories
+---
 
-Cross-Modal Attention: Advanced fusion mechanism between visual and textual features
+## 📌 Abstract
+The **COMPASS** model is a **dense scene localization framework** that operates on natural language queries, enabling fine-grained mapping of target objects and regions within complex, multi-object environments.  
+It bridges the gap between **visual perception** and **linguistic understanding** by integrating joint vision–language embeddings to pinpoint queried objects with **pixel-level** or **bounding-box precision**.  
 
-Multi-Scale Processing: Captures both fine-grained details and global scene context
+Unlike traditional object detection pipelines limited to predefined categories, COMPASS is **open-vocabulary**, capable of responding to **arbitrary text prompts**, including unseen object names, descriptive phrases, and contextual relations.  
 
-Real-Time Inference: Optimized for practical deployment scenarios
+**Key Applications:**
+- 🛡 Surveillance analytics – Detect suspicious activity from descriptions.
+- 🤖 Autonomous navigation – Robotic localization via spoken instructions.
+- 🕶 Augmented reality – Highlight described objects in live video.
+- 📊 Contextual visual analytics – Dynamically filter scene content by queries.
 
-Dense Scene Understanding: Excels in cluttered, occluded, or densely populated environments
+By combining **cross-modal attention** with **multi-scale feature extraction**, COMPASS achieves **custom-IoU score of 0.64** even in cluttered and occluded scenes.
 
-Custom IoU Score: Achieves 0.64 IoU on complex localization tasks
+---
 
-🚀 Applications
-Surveillance Analytics: Detect suspicious activities through natural language descriptions
+## 📂 Dataset
+**Dataset Used:** [COCO 2017](https://cocodataset.org/#home)  
+- **118,000** training images  
+- **5,000** validation images  
+- Bounding boxes, segmentation masks, and captions for **80 object categories**  
 
-Autonomous Navigation: Robotic localization based on spoken instructions
+### Why COCO 2017?
+- **Rich Annotations:** Supports both visual and textual modalities.  
+- **Complex Scenes:** Cluttered and diverse backgrounds for robust localization.  
+- **Multi-Object Context:** Many interacting objects per image.  
+- **Benchmark Standard:** Enables fair performance comparison.  
 
-Augmented Reality: Real-time object highlighting in live video feeds
+### Data Preprocessing in COMPASS
+- Resizing + normalization using ImageNet mean/std.  
+- Tokenization & embedding for text queries.  
+- Filtering for valid bounding boxes.  
+- Augmentations: horizontal flip & color jitter.
 
-Contextual Visual Analytics: Dynamic scene content filtering via text queries
+---
 
-🛠️ Installation
-Clone the repository:
+## 🏗 Architecture Overview
+COMPASS tackles **three key challenges**:  
+- **Semantic richness:** Handling complex, compositional queries.  
+- **Scale variation:** Multi-scale feature representation.  
+- **Open-vocabulary adaptability:** No retraining needed for unseen objects.
 
-bash
-git clone https://github.com/your-username/compass-scene-localization.git
-cd compass-scene-localization
-Create a virtual environment:
+### 1. Visual Feature Backbone
+- **Vision Transformer (ViT)** pre-trained on large image–text datasets.  
+- **Feature Pyramid Network (FPN)** for multi-scale fusion.  
 
-bash
-python -m venv compass_env
-source compass_env/bin/activate  # On Windows: compass_env\Scripts\activate
-Install dependencies:
+### 2. Text Encoding Module
+- **CLIP-based Transformer text encoder** with token-level embeddings.  
 
-bash
+### 3. Cross-Modal Fusion Layer
+- **Multi-Head Cross-Attention (MHCA)** for bidirectional alignment.  
+
+### 4. Localization Head
+- **Bounding Box Branch:** DETR-style regression, anchor-free.  
+- **Segmentation Branch:** Pixel-wise prediction via upsampling + skip connections.  
+
+### 5. Loss Functions
+- **CIoU Loss:** Bounding box regression.  
+- **Cross-Entropy Loss:** Classification confidence.  
+- **Binary Cross-Entropy:** Segmentation refinement.  
+- **Contrastive Loss:** Semantic–visual alignment.
+
+---
+
+## 📊 Previous Approaches & Limitations
+| Approach | Limitation |
+|----------|------------|
+| **Object Detection + Caption Matching** | Fails on unseen/unlabeled objects. |
+| **Region Proposal + Language Grounding** | Computationally heavy, misses small objects. |
+| **Transformer-based Grounding Models (MDETR, GroundingDINO)** | Only bounding boxes, no fine-grained segmentation. |
+
+**COMPASS** improves by combining **detection + pixel-level segmentation** in a single pipeline.
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/SANKALP9TRIPATHI/COMPASS.git
+cd COMPASS
+
+
+python3 -m venv compass_env
+source compass_env/bin/activate  # On Linux/Mac
+compass_env\Scripts\activate     # On Windows
+
+
 pip install -r requirements.txt
-Download COCO 2017 dataset:
-
-bash
-# Create data directory
-mkdir data
-cd data
-
-# Download COCO 2017 (training and validation sets)
-wget http://images.cocodataset.org/zips/train2017.zip
-wget http://images.cocodataset.org/zips/val2017.zip
-wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
-
-# Extract files
-unzip train2017.zip
-unzip val2017.zip
-unzip annotations_trainval2017.zip
-🎯 Quick Start
-Basic Usage
-python
-import torch
-from PIL import Image
-from transformers import CLIPProcessor
-from compass_model import EnhancedSceneLocalizationModel, COCOSceneLocalizationInference
-
-# Load pre-trained model
-model = EnhancedSceneLocalizationModel(num_classes=80)
-checkpoint = torch.load("model_outputs/coco_scene_localization_model.pth")
-model.load_state_dict(checkpoint['model_state_dict'])
-
-# Initialize inference system
-inference = COCOSceneLocalizationInference(model)
-
-# Load image and make prediction
-image = Image.open("path/to/your/image.jpg")
-query = "person with red shirt"
-
-# Get prediction
-bbox, confidence, attention_weights = inference.predict(image, query)
-print(f"Bounding box: {bbox}")
-print(f"Confidence: {confidence:.3f}")
-
-# Visualize results
-inference.visualize_prediction(image, query, bbox, confidence)
 
 
+jupyter notebook "compass .ipynb"
+
+
+#inside the Single Image Prediction cell:-
+image_path = "sample.jpg"
+query = "the person in a red shirt"
+
+image_path = "sample.jpg"
