@@ -102,4 +102,3 @@ jupyter notebook "compass .ipynb"
 image_path = "sample.jpg"
 query = "the person in a red shirt"
 
-image_path = "sample.jpg"
